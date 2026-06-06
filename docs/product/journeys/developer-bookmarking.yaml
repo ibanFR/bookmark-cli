@@ -1,0 +1,272 @@
+# Developer Bookmarking Journey — SSOT Seed
+# Wave: DISCOVER (initial schema)
+# Status: Validated in discovery. Peer review remediation applied 2026-06-06. Refined in DISCUSS wave.
+# Last updated: 2026-06-06
+# Interviews: 10 total (INT-01 through INT-10) — 5 Phase 1 Mom Test + 5 Phase 2 opportunity check-ins
+# Prototype participants: 7 (INT-P1 through INT-P7, 2 iterations)
+
+journey:
+  id: developer-bookmarking
+  version: "0.1.0"
+  wave: DISCOVER
+  feature: bookmark-cli
+
+  desired_outcome: >
+    Terminal-first developers save and retrieve any URL in under 5 seconds
+    without leaving their terminal context, eliminating re-search time
+    and maintaining coding flow.
+
+  personas:
+    - id: terminal-first-dev
+      label: "Terminal-First Developer"
+      description: >
+        Backend developers, DevOps engineers, and open-source maintainers
+        for whom the terminal is the primary workspace. Uses vim/neovim,
+        tmux, git, fzf, and similar tools daily. Discovers useful URLs
+        while already in the terminal.
+      jtbd: >
+        When I encounter a useful URL while working in the terminal,
+        I want to save it and retrieve it instantly without leaving my
+        current context, so I can maintain flow and stop re-searching
+        for things I've already found.
+      pain_frequency: "3-5x per week"
+      current_workarounds:
+        - "Slack DM to self"
+        - "Markdown notes repo (poorly maintained)"
+        - "Browser bookmarks (unused/unsearchable)"
+        - "Comments in shell scripts or READMEs"
+        - "Paid services (Pinboard) with high friction, often abandoned"
+      willingness_to_pay: "OSS free tier; optional GitHub Sponsors ($5-10/mo)"
+      non_negotiables:
+        - "Local-first, no account required"
+        - "Single-command save"
+        - "Simpler than buku"
+
+    - id: cli-adjacent-data-scientist
+      label: "CLI-Adjacent Data Scientist"
+      description: >
+        Data scientists who use the terminal for scripts and git but
+        primarily work in Jupyter notebooks. Has bookmark pain but uses
+        Notion or similar as primary workaround. Lower urgency.
+      jtbd: >
+        When I find a useful library or technique, I want to save it
+        in a way I can find it later, even if I don't remember which
+        notebook I used it in.
+      pain_frequency: "1-2x per week"
+      current_workarounds:
+        - "Notion pages (chaotic but functional)"
+        - "Screenshots"
+        - "Old Jupyter notebooks"
+      willingness_to_pay: "Low — existing Notion covers need adequately"
+      notes: "Secondary persona. Do not drive MVP requirements from this segment."
+
+    - id: security-researcher-sre
+      label: "Security Researcher / SRE"
+      description: >
+        Security researchers and site-reliability engineers who operate
+        almost exclusively in the terminal across multiple machines and
+        environments (local, remote SSH, ephemeral containers). Bookmarks
+        CVE reports, vendor advisories, runbooks, incident post-mortems,
+        and internal dashboards. Operates under data-sensitivity constraints
+        that make cloud-synced bookmarks a compliance risk. Encountered
+        in Phase 2 opportunity validation check-ins INT-06 and INT-10.
+      jtbd: >
+        When I find a CVE report, runbook, or vendor advisory during a
+        live incident or security review, I want to save it from my
+        terminal instantly so I can retrieve it later from any session
+        without relying on a browser or a cloud service.
+      pain_frequency: "4-6x per week"
+      current_workarounds:
+        - "Private git repo synced to all machines (clunky but trusted)"
+        - "Plain text files in home directory"
+        - "SSH notes / tmux scratch panes (ephemeral, lost on session end)"
+        - "Slack channel used as incident log (hard to search retroactively)"
+      willingness_to_pay: "OSS free; would contribute code or sponsor; local-only is a hard requirement"
+      non_negotiables:
+        - "Local-first, no cloud storage (compliance requirement, not just preference)"
+        - "Works across multiple machines via git-sync of local store"
+        - "No telemetry, no network calls"
+        - "Plain text or auditable storage format"
+      notes: >
+        Tertiary persona. Reinforces C-01 (local-first) with compliance-level urgency
+        beyond the primary persona's preference. Adds urgency signal to O1 (fast
+        in-terminal retrieval) — during an active incident, link-loss is a safety risk.
+        Does not change MVP requirements but elevates priority of local-first constraint.
+      evidence_sources:
+        - "INT-06: Security researcher, 8 years, consulting firm. Described git-repo workaround spontaneously."
+        - "INT-10: SRE, 5 years, cloud-native company. Confirmed compliance dimension independently."
+
+  job_map:
+    - step: define
+      label: "Identify the URL worth saving"
+      outcome: "Minimize time to decide a URL is worth saving"
+      current_pain: "No friction — developers know when they've found something useful"
+      opportunity_score: 3
+
+    - step: locate
+      label: "Capture the URL at point of discovery"
+      outcome: "Minimize keystrokes to save a URL with context tags"
+      current_pain: >
+        HIGH — must leave terminal, open browser bookmark manager, or paste
+        into a temporary location (Slack, notes). Friction causes abandonment.
+      opportunity_score: 16
+      top_opportunity: true
+
+    - step: prepare
+      label: "Tag and annotate the bookmark"
+      outcome: "Minimize likelihood of saving a URL without useful metadata"
+      current_pain: >
+        MEDIUM — browser bookmarks have poor tagging UX; markdown notes
+        require manual formatting; most workarounds skip annotation entirely.
+      opportunity_score: 13
+      top_opportunity: true
+
+    - step: confirm
+      label: "Verify the bookmark was saved correctly"
+      outcome: "Minimize likelihood of saving to the wrong location or losing the save"
+      current_pain: "LOW — confirmable in one command if tool exists"
+      opportunity_score: 5
+
+    - step: execute
+      label: "Retrieve a saved bookmark at the moment of need"
+      outcome: "Minimize time from 'I need that link' to having the URL"
+      current_pain: >
+        HIGH — current workarounds require multi-step retrieval: open browser,
+        search bookmarks, grep through files, or re-Google. Average 5-20 minutes
+        for common re-searches.
+      opportunity_score: 14
+      top_opportunity: true
+
+    - step: monitor
+      label: "Keep bookmark collection current and relevant"
+      outcome: "Minimize effort to identify and remove stale or broken bookmarks"
+      current_pain: >
+        MEDIUM — all interviewees have stale/broken link collections.
+        Low urgency; not a blocking pain.
+      opportunity_score: 8
+
+    - step: modify
+      label: "Update tags or notes on an existing bookmark"
+      outcome: "Minimize effort to correct or enrich bookmark metadata"
+      current_pain: "LOW — out of scope for MVP"
+      opportunity_score: 6
+
+    - step: conclude
+      label: "Share or export bookmarks with team"
+      outcome: "Minimize time to share a curated link set with collaborators"
+      current_pain: >
+        LOW for individuals; MEDIUM for team leads. Not a primary pain
+        in discovery interviews. Backlog candidate.
+      opportunity_score: 7
+
+  opportunity_solution_tree:
+    desired_outcome: >
+      Developers retrieve any saved link in under 5 seconds
+      without leaving the terminal.
+
+    opportunities:
+      - id: O1
+        label: "Fast in-terminal retrieval without context switch"
+        score: 16
+        priority: 1
+        solution_ideas:
+          - "bm search <term> with instant fuzzy results"
+          - "fzf integration for interactive selection"
+          - "Shell alias for most-recent bookmarks"
+
+      - id: O3
+        label: "Low-friction one-command save"
+        score: 14
+        priority: 2
+        solution_ideas:
+          - "bm save <url> [--tag t1,t2] [--note 'text']"
+          - "Pipe support: echo <url> | bm save --tag docs"
+          - "Browser clipboard paste detection"
+
+      - id: O2
+        label: "Tag-based organization and search"
+        score: 13
+        priority: 3
+        solution_ideas:
+          - "bm search --tag <tag>"
+          - "bm tags — list all tags with counts"
+          - "Auto-suggest tags from URL domain/path"
+
+      - id: O5
+        label: "Radical simplicity vs. existing tools"
+        score: 13
+        priority: 3
+        solution_ideas:
+          - "3 core commands only for MVP: save, search, open"
+          - "Zero-config setup (no init required)"
+          - "Single binary, no runtime dependencies"
+
+      - id: O7
+        label: "Shell integration (fuzzy search, piping)"
+        score: 12
+        priority: 4
+        solution_ideas:
+          - "Optional fzf integration via plugin"
+          - "bm search output pipeable to xargs/open"
+          - "Shell completion for tags"
+
+      - id: O4
+        label: "Privacy / local-first storage"
+        score: 10
+        priority: 5
+        solution_ideas:
+          - "Plain text or SQLite local storage"
+          - "XDG-compliant config directory"
+          - "No telemetry, no network calls"
+
+      - id: O6
+        label: "Contextual notes on saved URLs"
+        score: 9
+        priority: 6
+        solution_ideas:
+          - "--note flag on save"
+          - "Multi-line notes via $EDITOR"
+          - "Snippet capture alongside URL"
+
+  constraints:
+    - id: C-01
+      label: "Local-first storage is mandatory"
+      evidence: >
+        2/5 Phase 1 interviews stated account requirement as explicit disqualifier (preference).
+        INT-06 and INT-10 (security/SRE) confirmed local-only as compliance requirement —
+        cloud storage of work-related URLs is prohibited by policy in their environments.
+        10/10 cumulative interviews showed no expectation of cloud features.
+    - id: C-02
+      label: "Single-command save"
+      evidence: "OSS maintainer described exact syntax; Pinboard abandoned due to multi-step friction; confirmed by 93% task completion in prototype (7 participants)"
+    - id: C-03
+      label: "No SaaS pricing"
+      evidence: "4/5 Phase 1 interviewees expect free/OSS; confirmed by Phase 2 check-ins; sponsorship acceptable"
+    - id: C-04
+      label: "Complexity ceiling — simpler than buku"
+      evidence: "Direct buku abandonment story from OSS maintainer (INT-05); INT-07 independently cited buku complexity without prompting"
+    - id: C-05
+      label: "CLI-first, terminal-native"
+      evidence: "4/5 Phase 1 pain occurs in terminal context; browser extension rejected on evidence; security/SRE personas add remote-session requirement"
+
+  invalidated_directions:
+    - label: "Browser extension"
+      reason: "Does not solve context-switching pain; pain occurs in terminal"
+    - label: "SaaS / cloud sync"
+      reason: "Explicit disqualifier for privacy-conscious primary persona"
+    - label: "Feature-rich manager (buku-style)"
+      reason: "Complexity is the adoption barrier; simplicity is the opportunity"
+
+  next_wave_inputs:
+    wave: DISCUSS
+    handoff_to: product-owner
+    open_questions:
+      - "Command syntax validation — confirm `bm` as namespace with 3+ additional users"
+      - "Storage format decision — plain text vs. SQLite (affects grep-ability vs. search perf)"
+      - "fzf dependency — optional vs. built-in fuzzy search"
+      - "MVP scope boundary — confirm save/search/open as complete MVP feature set"
+      - "Team sharing — confirm out of MVP scope or fast-follow"
+    artifacts:
+      - "docs/feature/bookmark-cli/feature-delta.md"
+      - "docs/feature/bookmark-cli/discover/wave-decisions.md"
+      - "docs/product/journeys/developer-bookmarking.yaml"
